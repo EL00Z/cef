@@ -873,3 +873,366 @@
             const headers = ['Email', 'Confidence', 'Pattern', 'Status', 'First Name', 'Last Name', 'Domain'];
             const rows = validationResults.map(r => [
                 r.email,
+                r.confidence,
+                r.pattern,
+                r.status,
+                r.firstName || '',
+                r.lastName || '',
+                r.domain || ''
+            ]);
+            
+            const csvContent = [headers, ...rows]
+                .map(row => row.map(field => `"${field}"`).join(','))
+                .join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `email-validation-results-${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showNotification('CSV exported successfully!', 'success');
+        }
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('show');
+            }, 100);
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        // Form enhancements
+        document.getElementById('submitBtn').addEventListener('click', function(e) {
+            const btn = e.target;
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading-spinner"></div> Validating...';
+            
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }, 5000);
+        });
+
+        // Auto-save form data
+        const formInputs = ['firstName', 'lastName', 'domain'];
+        formInputs.forEach(id => {
+            const input = document.getElementById(id);
+            input.addEventListener('input', () => {
+                localStorage.setItem(`emailValidator_${id}`, input.value);
+            });
+            
+            // Restore saved data
+            const saved = localStorage.getItem(`emailValidator_${id}`);
+            if (saved) {
+                input.value = saved;
+            }
+        });
+
+        // Advanced settings toggle
+        const advancedCheckbox = document.getElementById('advancedVerification');
+        advancedCheckbox.addEventListener('change', () => {
+            localStorage.setItem('emailValidator_advanced', advancedCheckbox.checked);
+        });
+
+        // Restore advanced setting
+        const savedAdvanced = localStorage.getItem('emailValidator_advanced');
+        if (savedAdvanced === 'true') {
+            advancedCheckbox.checked = true;
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'Enter':
+                        e.preventDefault();
+                        document.getElementById('emailForm').dispatchEvent(new Event('submit'));
+                        break;
+                    case 'c':
+                        if (validationResults.length > 0) {
+                            e.preventDefault();
+                            copyResults();
+                        }
+                        break;
+                    case 's':
+                        if (validationResults.length > 0) {
+                            e.preventDefault();
+                            exportCSV();
+                        }
+                        break;
+                }
+            }
+        });
+
+        // File upload drag and drop enhancement
+        const fileUpload = document.querySelector('.file-upload');
+        const fileUploadLabel = document.querySelector('.file-upload-label');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUpload.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUpload.addEventListener(eventName, () => {
+                fileUploadLabel.style.borderColor = 'var(--primary-color)';
+                fileUploadLabel.style.background = 'rgb(37 99 235 / 0.05)';
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUpload.addEventListener(eventName, () => {
+                fileUploadLabel.style.borderColor = 'var(--border)';
+                fileUploadLabel.style.background = 'var(--background)';
+            });
+        });
+
+        fileUpload.addEventListener('drop', (e) => {
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('csvFile').files = files;
+                handleCSVUpload({ target: { files } });
+            }
+        });
+
+        // Add loading states and better error handling
+        let validationInProgress = false;
+
+        async function validateEmailWithRetry(email, advanced, maxRetries = 3) {
+            for (let attempt = 0; attempt < maxRetries; attempt++) {
+                try {
+                    return await validateEmail(email, advanced);
+                } catch (error) {
+                    if (attempt === maxRetries - 1) {
+                        return {
+                            syntax: false,
+                            domain: false,
+                            smtp: false,
+                            catchAll: false,
+                            confidence: 0,
+                            status: 'error',
+                            error: 'Validation failed'
+                        };
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+                }
+            }
+        }
+
+        // Enhanced validation with better error handling
+        async function validateEmailPatterns(firstName, lastName, domain, advanced, updateUI = true) {
+            if (validationInProgress) {
+                showNotification('Validation already in progress', 'error');
+                return [];
+            }
+
+            validationInProgress = true;
+            const results = [];
+            const totalPatterns = EMAIL_PATTERNS.length;
+            
+            try {
+                for (let i = 0; i < totalPatterns; i++) {
+                    if (updateUI) {
+                        updateProgress(
+                            (i / totalPatterns) * 100, 
+                            `Testing pattern ${i + 1} of ${totalPatterns}: ${EMAIL_PATTERNS[i](firstName, lastName, domain)}`
+                        );
+                    }
+                    
+                    const email = EMAIL_PATTERNS[i](firstName, lastName, domain);
+                    const validation = await validateEmailWithRetry(email, advanced);
+                    
+                    results.push({
+                        email,
+                        pattern: i + 1,
+                        patternName: getPatternName(i + 1),
+                        ...validation,
+                        firstName,
+                        lastName,
+                        domain
+                    });
+                    
+                    // Add realistic delay for better UX
+                    await new Promise(resolve => setTimeout(resolve, advanced ? 200 : 100));
+                }
+                
+                // Sort by confidence score, then by pattern popularity
+                results.sort((a, b) => {
+                    if (b.confidence !== a.confidence) {
+                        return b.confidence - a.confidence;
+                    }
+                    return a.pattern - b.pattern;
+                });
+                
+                if (updateUI) {
+                    validationResults = results;
+                    updateProgress(100, `Validation complete! Found ${results.filter(r => r.confidence > 50).length} high-confidence results.`);
+                }
+                
+                return results;
+            } finally {
+                validationInProgress = false;
+            }
+        }
+
+        function getPatternName(patternNumber) {
+            const names = [
+                'firstname@domain', 'f.lastname@domain', 'firstname.lastname@domain',
+                'flastname@domain', 'firstnamelastname@domain', 'lastname@domain',
+                'lastname.firstname@domain', 'f_lastname@domain', 'firstname_lastname@domain',
+                'firstname-lastname@domain', 'f-lastname@domain', 'lastnamefirstname@domain',
+                'firstname.l@domain', 'fl@domain', 'firstname+lastname@domain',
+                'firstname123@domain', 'firstname1@domain', 'firstname.lastname1@domain',
+                'firstname.lastname123@domain', 'lastname.f@domain', 'lastname.firstname@domain',
+                'lastname_firstname@domain', 'firstname.middle.lastname@domain', 'firstnamelastname1@domain',
+                'firstname.lastname.work@domain', 'firstname.lastname.email@domain', 'contact.firstname@domain',
+                'firstname.contact@domain', 'admin.firstname@domain', 'firstname.admin@domain'
+            ];
+            return names[patternNumber - 1] || `Pattern ${patternNumber}`;
+        }
+
+        // Enhanced results display with more details
+        function displayResults() {
+            const container = document.getElementById('resultsContainer');
+            
+            if (validationResults.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No validation results available.</p>';
+                showResultsSection();
+                return;
+            }
+            
+            // Group results by confidence level
+            const highConfidence = validationResults.filter(r => r.confidence >= 70);
+            const mediumConfidence = validationResults.filter(r => r.confidence >= 40 && r.confidence < 70);
+            const lowConfidence = validationResults.filter(r => r.confidence < 40);
+            
+            let html = `
+                <div style="margin-bottom: 2rem;">
+                    <div style="display: flex; gap: 2rem; margin-bottom: 1rem;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: var(--success-color);">${highConfidence.length}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">High Confidence</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: var(--warning-color);">${mediumConfidence.length}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Medium Confidence</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 2rem; font-weight: bold; color: var(--error-color);">${lowConfidence.length}</div>
+                            <div style="font-size: 0.875rem; color: var(--text-secondary);">Low Confidence</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            validationResults.forEach((result, index) => {
+                const confidenceClass = getConfidenceClass(result.confidence);
+                const statusClass = `status-${result.status}`;
+                const statusText = result.status === 'verified' ? 'Verified' : 
+                                 result.status === 'possible' ? 'Possible' : 'Invalid';
+                
+                html += `
+                    <div class="result-item" style="position: relative;">
+                        <div style="display: flex; align-items: center; flex: 1;">
+                            <div class="status-indicator ${statusClass}" title="${statusText}"></div>
+                            <div style="flex: 1;">
+                                <div class="result-email">${result.email}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem;">
+                                    ${result.patternName} ${result.catchAll ? '• Catch-all domain' : ''}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="result-confidence">
+                            <div class="confidence-badge ${confidenceClass}">
+                                ${result.confidence}%
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-align: right;">
+                                #${result.pattern}<br/>
+                                ${Math.round(result.responseTime || 0)}ms
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            showResultsSection();
+        }
+
+        // Initialize the application
+        window.addEventListener('load', () => {
+            showNotification('EmailValidator Pro loaded successfully!', 'success');
+            
+            // Add some example data for demo purposes
+            if (!localStorage.getItem('emailValidator_firstName')) {
+                document.getElementById('firstName').placeholder = 'e.g., John';
+                document.getElementById('lastName').placeholder = 'e.g., Smith';
+                document.getElementById('domain').placeholder = 'e.g., company.com';
+            }
+        });
+
+        // Add print functionality
+        function printResults() {
+            const printWindow = window.open('', '_blank');
+            const printContent = `
+                <html>
+                <head>
+                    <title>Email Validation Results</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        .result { padding: 10px; border-bottom: 1px solid #ccc; }
+                        .email { font-weight: bold; font-family: monospace; }
+                        .confidence { color: #666; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Email Validation Results</h1>
+                    <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                    ${validationResults.map(r => `
+                        <div class="result">
+                            <div class="email">${r.email}</div>
+                            <div class="confidence">Confidence: ${r.confidence}% | Pattern: ${r.pattern} | Status: ${r.status}</div>
+                        </div>
+                    `).join('')}
+                </body>
+                </html>
+            `;
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        // Add context menu for results
+        document.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.result-item')) {
+                e.preventDefault();
+                // Could add custom context menu here
+            }
+        });
+
+        console.log('EmailValidator Pro - Professional Email Validation Platform');
+        console.log('Features: 30 pattern combinations, advanced catch-all verification, CSV bulk processing');
+    </script>
+</body>
+</html>
