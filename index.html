@@ -3,29 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EmailFinder Pro - Email Validation & Discovery</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>EmailValidator Pro - Email Validation & Guessing Platform</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
-            --primary-color: #3b82f6;
-            --primary-dark: #2563eb;
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
             --secondary-color: #64748b;
             --success-color: #10b981;
             --warning-color: #f59e0b;
-            --danger-color: #ef4444;
+            --error-color: #ef4444;
             --background: #ffffff;
             --surface: #f8fafc;
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --border: #e2e8f0;
-            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
         }
 
         [data-theme="dark"] {
@@ -36,8 +30,14 @@
             --border: #334155;
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: var(--background);
             color: var(--text-primary);
             line-height: 1.6;
@@ -47,14 +47,16 @@
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 0 1rem;
+            padding: 0 20px;
         }
 
         .header {
             background: var(--surface);
             border-bottom: 1px solid var(--border);
             padding: 1rem 0;
-            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .header-content {
@@ -64,21 +66,18 @@
         }
 
         .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
             font-size: 1.5rem;
-            font-weight: 700;
+            font-weight: bold;
             color: var(--primary-color);
         }
 
         .theme-toggle {
             background: none;
             border: 1px solid var(--border);
+            color: var(--text-primary);
             padding: 0.5rem;
             border-radius: 0.5rem;
             cursor: pointer;
-            color: var(--text-primary);
             transition: all 0.3s ease;
         }
 
@@ -90,34 +89,13 @@
             padding: 2rem 0;
         }
 
-        .hero {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: 1rem;
+            border-radius: 0.75rem;
             padding: 2rem;
-            box-shadow: var(--shadow);
             margin-bottom: 2rem;
+            box-shadow: var(--shadow);
         }
 
         .form-group {
@@ -131,9 +109,9 @@
             color: var(--text-primary);
         }
 
-        .form-control {
+        .form-input {
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.75rem;
             border: 1px solid var(--border);
             border-radius: 0.5rem;
             background: var(--background);
@@ -142,17 +120,57 @@
             transition: all 0.3s ease;
         }
 
-        .form-control:focus {
+        .form-input:focus {
             outline: none;
             border-color: var(--primary-color);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 3px rgb(37 99 235 / 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .file-upload {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-upload input[type=file] {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            border: 2px dashed var(--border);
+            border-radius: 0.5rem;
+            background: var(--background);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-upload:hover .file-upload-label {
+            border-color: var(--primary-color);
+            background: rgb(37 99 235 / 0.05);
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 0.5rem;
             padding: 0.75rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
             border: none;
             border-radius: 0.5rem;
             font-size: 1rem;
@@ -162,51 +180,40 @@
             text-decoration: none;
         }
 
-        .btn-primary {
-            background: var(--primary-color);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
+        .btn:hover {
             background: var(--primary-dark);
-            transform: translateY(-1px);
         }
 
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
 
-        .progress-container {
-            display: none;
-            margin: 2rem 0;
+        .btn-secondary {
+            background: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .progress {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
         }
 
         .progress-bar {
-            width: 100%;
-            height: 0.5rem;
-            background: var(--border);
-            border-radius: 0.25rem;
-            overflow: hidden;
-        }
-
-        .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+            background: var(--primary-color);
             transition: width 0.3s ease;
-            width: 0%;
         }
 
-        .progress-text {
-            text-align: center;
-            margin-top: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-
-        .results {
-            display: none;
+        .results-section {
+            margin-top: 2rem;
         }
 
         .result-item {
@@ -214,115 +221,107 @@
             align-items: center;
             justify-content: space-between;
             padding: 1rem;
+            background: var(--background);
             border: 1px solid var(--border);
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
-            background: var(--background);
+            margin-bottom: 0.5rem;
         }
 
         .result-email {
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
             font-weight: 500;
         }
 
-        .result-status {
+        .result-confidence {
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-
-        .status-valid {
-            color: var(--success-color);
-        }
-
-        .status-invalid {
-            color: var(--danger-color);
-        }
-
-        .status-catchall {
-            color: var(--warning-color);
         }
 
         .confidence-badge {
             padding: 0.25rem 0.5rem;
             border-radius: 0.25rem;
-            font-size: 0.75rem;
+            font-size: 0.875rem;
             font-weight: 500;
-            text-transform: uppercase;
         }
 
         .confidence-high {
-            background: rgba(16, 185, 129, 0.1);
+            background: rgb(16 185 129 / 0.1);
             color: var(--success-color);
         }
 
         .confidence-medium {
-            background: rgba(245, 158, 11, 0.1);
+            background: rgb(245 158 11 / 0.1);
             color: var(--warning-color);
         }
 
         .confidence-low {
-            background: rgba(239, 68, 68, 0.1);
-            color: var(--danger-color);
+            background: rgb(239 68 68 / 0.1);
+            color: var(--error-color);
         }
 
-        .alert {
-            padding: 1rem;
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-verified {
+            background: var(--success-color);
+        }
+
+        .status-possible {
+            background: var(--warning-color);
+        }
+
+        .status-invalid {
+            background: var(--error-color);
+        }
+
+        .advanced-settings {
+            background: var(--background);
+            border: 1px solid var(--border);
             border-radius: 0.5rem;
-            margin-bottom: 1rem;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .checkbox-group {
             display: flex;
             align-items: center;
             gap: 0.5rem;
         }
 
-        .alert-warning {
-            background: rgba(245, 158, 11, 0.1);
-            border: 1px solid rgba(245, 158, 11, 0.2);
-            color: var(--warning-color);
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 0.5rem;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
         }
 
-        .alert-success {
-            background: rgba(16, 185, 129, 0.1);
-            border: 1px solid rgba(16, 185, 129, 0.2);
-            color: var(--success-color);
+        .notification.show {
+            transform: translateX(0);
         }
 
-        .history {
-            margin-top: 2rem;
+        .notification.success {
+            background: var(--success-color);
         }
 
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border);
+        .notification.error {
+            background: var(--error-color);
         }
 
-        .history-item:last-child {
-            border-bottom: none;
-        }
-
-        .copy-btn {
-            background: none;
-            border: 1px solid var(--border);
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            cursor: pointer;
-            color: var(--text-secondary);
-            font-size: 0.75rem;
-        }
-
-        .copy-btn:hover {
-            background: var(--surface);
-        }
-
-        .spinner {
+        .loading-spinner {
             display: inline-block;
-            width: 1rem;
-            height: 1rem;
+            width: 20px;
+            height: 20px;
             border: 2px solid transparent;
             border-top: 2px solid currentColor;
             border-radius: 50%;
@@ -330,147 +329,179 @@
         }
 
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 1rem;
+        .csv-preview {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+        }
+
+        .csv-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .csv-table th,
+        .csv-table td {
+            padding: 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .csv-table th {
+            background: var(--surface);
+            font-weight: 500;
+        }
+
+        .export-buttons {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
         }
 
         @media (max-width: 768px) {
-            .grid {
+            .form-row {
                 grid-template-columns: 1fr;
             }
             
-            .hero h1 {
-                font-size: 2rem;
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
             }
             
-            .container {
-                padding: 0 0.5rem;
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .export-buttons {
+                flex-direction: column;
             }
         }
     </style>
 </head>
 <body>
-    <header class="header">
+    <div class="header">
         <div class="container">
             <div class="header-content">
                 <div class="logo">
-                    <i class="fas fa-envelope-open-text"></i>
-                    EmailFinder Pro
+                    <i class="fas fa-envelope-check"></i>
+                    EmailValidator Pro
                 </div>
-                <button class="theme-toggle" onclick="toggleTheme()">
-                    <i class="fas fa-moon" id="theme-icon"></i>
+                <button class="theme-toggle" id="themeToggle">
+                    <i class="fas fa-moon"></i>
                 </button>
             </div>
         </div>
-    </header>
+    </div>
 
-    <main class="main">
+    <div class="main">
         <div class="container">
-            <div class="hero">
-                <h1>Find Any Email Address</h1>
-                <p>Professional email validation and discovery platform. Find verified email addresses using advanced pattern matching and real-time validation.</p>
-            </div>
-
             <div class="card">
-                <form id="email-form">
-                    <div class="grid">
+                <h2>Email Validation & Guessing Platform</h2>
+                <p style="color: var(--text-secondary); margin-bottom: 2rem;">
+                    Find and validate email addresses using 30 different pattern combinations with advanced verification.
+                </p>
+
+                <form id="emailForm">
+                    <div class="form-row">
                         <div class="form-group">
                             <label for="firstName">First Name</label>
-                            <input type="text" id="firstName" class="form-control" placeholder="John" required>
+                            <input type="text" id="firstName" class="form-input" placeholder="John" required>
                         </div>
                         <div class="form-group">
                             <label for="lastName">Last Name</label>
-                            <input type="text" id="lastName" class="form-control" placeholder="Doe" required>
+                            <input type="text" id="lastName" class="form-input" placeholder="Doe" required>
                         </div>
                         <div class="form-group">
-                            <label for="domain">Company Domain</label>
-                            <input type="text" id="domain" class="form-control" placeholder="company.com" required>
+                            <label for="domain">Domain</label>
+                            <input type="text" id="domain" class="form-input" placeholder="company.com" required>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary" id="submit-btn">
+
+                    <div class="form-group">
+                        <label>CSV Upload (Optional)</label>
+                        <div class="file-upload">
+                            <input type="file" id="csvFile" accept=".csv" />
+                            <div class="file-upload-label">
+                                <i class="fas fa-cloud-upload-alt" style="margin-right: 0.5rem;"></i>
+                                Drag and drop CSV file or click to browse (max 1MB)
+                            </div>
+                        </div>
+                        <div id="csvPreview" class="csv-preview" style="display: none;"></div>
+                    </div>
+
+                    <div class="advanced-settings" id="advancedSettings">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="advancedVerification">
+                            <label for="advancedVerification">Enable Advanced Catch-All Verification (slower but more accurate)</label>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="submitBtn">
                         <i class="fas fa-search"></i>
-                        Find Email Address
+                        Start Validation
                     </button>
                 </form>
-
-                <div class="progress-container" id="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                    <div class="progress-text" id="progress-text">Checking email patterns...</div>
-                </div>
             </div>
 
-            <div class="results" id="results">
+            <div id="progressSection" style="display: none;">
                 <div class="card">
-                    <h3>Validation Results</h3>
-                    <div id="results-content"></div>
-                    <button class="btn btn-primary" onclick="copyResults()">
-                        <i class="fas fa-copy"></i>
-                        Copy Results
-                    </button>
+                    <h3>Validation Progress</h3>
+                    <div class="progress">
+                        <div class="progress-bar" id="progressBar"></div>
+                    </div>
+                    <p id="progressText">Starting validation...</p>
                 </div>
             </div>
 
-            <div class="card history" id="history-section" style="display: none;">
-                <h3>Recent Searches</h3>
-                <div id="history-content"></div>
-                <button class="btn btn-primary" onclick="clearHistory()">
-                    <i class="fas fa-trash"></i>
-                    Clear History
-                </button>
+            <div id="resultsSection" class="results-section" style="display: none;">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3>Validation Results</h3>
+                        <div class="export-buttons">
+                            <button class="btn btn-secondary" id="copyResults">
+                                <i class="fas fa-copy"></i>
+                                Copy Results
+                            </button>
+                            <button class="btn btn-secondary" id="exportCSV">
+                                <i class="fas fa-download"></i>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+                    <div id="resultsContainer"></div>
+                </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
-        // Email patterns in order of statistical frequency
+        // Email pattern generators
         const EMAIL_PATTERNS = [
             (f, l, d) => `${f}@${d}`,
-            (f, l, d) => `${f.charAt(0)}.${l}@${d}`,
+            (f, l, d) => `${f[0]}.${l}@${d}`,
             (f, l, d) => `${f}.${l}@${d}`,
-            (f, l, d) => `${f.charAt(0)}${l}@${d}`,
+            (f, l, d) => `${f[0]}${l}@${d}`,
             (f, l, d) => `${f}${l}@${d}`,
             (f, l, d) => `${l}@${d}`,
             (f, l, d) => `${l}.${f}@${d}`,
-            (f, l, d) => `${f.charAt(0)}_${l}@${d}`,
+            (f, l, d) => `${f[0]}_${l}@${d}`,
             (f, l, d) => `${f}_${l}@${d}`,
             (f, l, d) => `${f}-${l}@${d}`,
-            (f, l, d) => `${f.charAt(0)}-${l}@${d}`,
+            (f, l, d) => `${f[0]}-${l}@${d}`,
             (f, l, d) => `${l}${f}@${d}`,
-            (f, l, d) => `${f}.${l.charAt(0)}@${d}`,
-            (f, l, d) => `${f.charAt(0)}${l.charAt(0)}@${d}`,
+            (f, l, d) => `${f}.${l[0]}@${d}`,
+            (f, l, d) => `${f[0]}${l[0]}@${d}`,
             (f, l, d) => `${f}+${l}@${d}`,
             (f, l, d) => `${f}123@${d}`,
             (f, l, d) => `${f}1@${d}`,
             (f, l, d) => `${f}.${l}1@${d}`,
             (f, l, d) => `${f}.${l}123@${d}`,
-            (f, l, d) => `${l}.${f.charAt(0)}@${d}`,
+            (f, l, d) => `${l}.${f[0]}@${d}`,
             (f, l, d) => `${l}.${f}@${d}`,
             (f, l, d) => `${l}_${f}@${d}`,
-            (f, l, d) => `${f}.${f.charAt(0)}.${l}@${d}`,
+            (f, l, d) => `${f}.${f[0]}.${l}@${d}`,
             (f, l, d) => `${f}${l}1@${d}`,
             (f, l, d) => `${f}.${l}.work@${d}`,
             (f, l, d) => `${f}.${l}.email@${d}`,
@@ -480,409 +511,365 @@
             (f, l, d) => `${f}.admin@${d}`
         ];
 
-        let validationInProgress = false;
-        let currentResults = [];
+        // Global variables
+        let validationResults = [];
+        let currentValidation = null;
+        let csvData = [];
 
         // Theme management
-        function toggleTheme() {
-            const body = document.body;
-            const icon = document.getElementById('theme-icon');
-            
-            if (body.hasAttribute('data-theme')) {
-                body.removeAttribute('data-theme');
-                icon.className = 'fas fa-moon';
-            } else {
-                body.setAttribute('data-theme', 'dark');
-                icon.className = 'fas fa-sun';
-            }
-            
-            localStorage.setItem('theme', body.getAttribute('data-theme') || 'light');
-        }
+        const themeToggle = document.getElementById('themeToggle');
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcon(currentTheme);
 
-        // Load theme on page load
-        window.addEventListener('load', () => {
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme === 'dark') {
-                document.body.setAttribute('data-theme', 'dark');
-                document.getElementById('theme-icon').className = 'fas fa-sun';
-            }
-            loadHistory();
+        themeToggle.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const newTheme = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
         });
 
-        // Email validation functions
-        function validateEmailSyntax(email) {
-            const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return regex.test(email);
+        function updateThemeIcon(theme) {
+            const icon = themeToggle.querySelector('i');
+            icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         }
 
-        async function validateDomain(domain) {
-            try {
-                // Simulate DNS lookup with a realistic delay
-                await sleep(Math.random() * 500 + 200);
-                
-                // Common domains that we know exist
-                const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'company.com', 'example.com', 'test.com'];
-                const tlds = ['.com', '.org', '.net', '.edu', '.gov', '.io', '.co'];
-                
-                // If it's a common domain or has a valid TLD, consider it valid
-                if (commonDomains.includes(domain.toLowerCase()) || 
-                    tlds.some(tld => domain.toLowerCase().endsWith(tld))) {
-                    return true;
-                }
-                
-                // For demo purposes, randomly validate other domains
-                return Math.random() > 0.3;
-            } catch (error) {
-                return false;
+        // CSV file handling
+        document.getElementById('csvFile').addEventListener('change', handleCSVUpload);
+
+        function handleCSVUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (file.size > 1024 * 1024) {
+                showNotification('File size must be less than 1MB', 'error');
+                return;
             }
-        }
 
-        async function validateSMTP(email, domain) {
-            try {
-                // Simulate SMTP validation with realistic delay
-                await sleep(Math.random() * 1000 + 500);
-                
-                // Check for catch-all first
-                const isCatchAll = await checkCatchAll(domain);
-                if (isCatchAll) {
-                    return { valid: true, catchAll: true };
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const csv = parseCSV(e.target.result);
+                    csvData = csv;
+                    showCSVPreview(csv);
+                } catch (error) {
+                    showNotification('Error parsing CSV file', 'error');
                 }
-                
-                // Simulate SMTP validation - higher probability for common patterns
-                const commonPatterns = ['firstname@', 'firstname.lastname@', 'f.lastname@'];
-                const isCommonPattern = commonPatterns.some(pattern => 
-                    email.toLowerCase().includes(pattern.replace('firstname', '').replace('lastname', ''))
-                );
-                
-                const validationChance = isCommonPattern ? 0.7 : 0.3;
-                const isValid = Math.random() < validationChance;
-                
-                return { valid: isValid, catchAll: false };
-            } catch (error) {
-                return { valid: false, catchAll: false };
-            }
+            };
+            reader.readAsText(file);
         }
 
-        async function checkCatchAll(domain) {
-            try {
-                // Simulate catch-all detection
-                await sleep(300);
-                
-                // For demo purposes, some domains are catch-all
-                const catchAllDomains = ['example.com', 'test.com'];
-                if (catchAllDomains.includes(domain.toLowerCase())) {
-                    return true;
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            if (lines.length === 0) return [];
+
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            const data = [];
+
+            // Map flexible column names
+            const firstNameIndex = headers.findIndex(h => 
+                h.includes('first') || h === 'firstname' || h === 'fname'
+            );
+            const lastNameIndex = headers.findIndex(h => 
+                h.includes('last') || h === 'lastname' || h === 'lname'
+            );
+            const domainIndex = headers.findIndex(h => 
+                h.includes('domain') || h.includes('company') || h === 'email'
+            );
+
+            for (let i = 1; i < Math.min(lines.length, 101); i++) { // Limit to 100 entries
+                const values = lines[i].split(',').map(v => v.trim());
+                if (values.length >= 3) {
+                    data.push({
+                        firstName: values[firstNameIndex] || '',
+                        lastName: values[lastNameIndex] || '',
+                        domain: values[domainIndex] || ''
+                    });
                 }
-                
-                // Random chance for other domains
-                return Math.random() < 0.2;
-            } catch (error) {
-                return false;
             }
+
+            return data;
         }
 
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        function getConfidenceLevel(patternIndex, isValid, isCatchAll) {
-            if (isCatchAll) return 'medium';
-            if (!isValid) return 'low';
+        function showCSVPreview(data) {
+            const preview = document.getElementById('csvPreview');
+            const previewData = data.slice(0, 5);
             
-            if (patternIndex < 5) return 'high';
-            if (patternIndex < 15) return 'medium';
-            return 'low';
+            let html = '<table class="csv-table"><thead><tr><th>First Name</th><th>Last Name</th><th>Domain</th></tr></thead><tbody>';
+            previewData.forEach(row => {
+                html += `<tr><td>${row.firstName}</td><td>${row.lastName}</td><td>${row.domain}</td></tr>`;
+            });
+            html += '</tbody></table>';
+            html += `<p style="padding: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                Showing ${previewData.length} of ${data.length} entries
+            </p>`;
+            
+            preview.innerHTML = html;
+            preview.style.display = 'block';
         }
 
-        // Form submission handler
-        document.getElementById('email-form').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            if (validationInProgress) return;
+        // Form submission
+        document.getElementById('emailForm').addEventListener('submit', handleFormSubmit);
+
+        async function handleFormSubmit(event) {
+            event.preventDefault();
             
             const firstName = document.getElementById('firstName').value.trim().toLowerCase();
             const lastName = document.getElementById('lastName').value.trim().toLowerCase();
             const domain = document.getElementById('domain').value.trim().toLowerCase();
-            
-            if (!firstName || !lastName || !domain) {
-                alert('Please fill in all fields');
-                return;
-            }
-            
-            await startValidation(firstName, lastName, domain);
-        });
+            const advancedVerification = document.getElementById('advancedVerification').checked;
 
-        async function startValidation(firstName, lastName, domain) {
-            validationInProgress = true;
-            currentResults = [];
-            
-            // Update UI
-            const submitBtn = document.getElementById('submit-btn');
-            const progressContainer = document.getElementById('progress-container');
-            const progressFill = document.getElementById('progress-fill');
-            const progressText = document.getElementById('progress-text');
-            const results = document.getElementById('results');
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<div class="spinner"></div> Validating...';
-            progressContainer.style.display = 'block';
-            results.style.display = 'none';
-            
-            // Generate all email patterns
-            const emails = EMAIL_PATTERNS.map((pattern, index) => ({
-                email: pattern(firstName, lastName, domain),
-                patternIndex: index
-            }));
-            
-            let foundValidNonCatchAll = false;
-            let isCatchAllDomain = false;
-            
-            // Validate domain first
-            const isDomainValid = await validateDomain(domain);
-            if (!isDomainValid) {
-                showError('Invalid domain. Please check the domain name and try again.');
-                resetForm();
-                return;
-            }
-            
-            // Check for catch-all
-            isCatchAllDomain = await checkCatchAll(domain);
-            
-            // Validate emails one by one
-            for (let i = 0; i < emails.length && !foundValidNonCatchAll; i++) {
-                const { email, patternIndex } = emails[i];
-                
-                // Update progress
-                const progress = ((i + 1) / emails.length) * 100;
-                progressFill.style.width = `${progress}%`;
-                progressText.textContent = `Testing pattern ${i + 1} of ${emails.length}: ${email}`;
-                
-                // Validate email
-                if (!validateEmailSyntax(email)) {
-                    continue;
-                }
-                
-                const smtpResult = await validateSMTP(email, domain);
-                const confidence = getConfidenceLevel(patternIndex, smtpResult.valid, smtpResult.catchAll || isCatchAllDomain);
-                
-                const result = {
-                    email,
-                    valid: smtpResult.valid,
-                    catchAll: smtpResult.catchAll || isCatchAllDomain,
-                    confidence,
-                    patternIndex
-                };
-                
-                currentResults.push(result);
-                
-                // Stop if we found a valid non-catch-all email
-                if (smtpResult.valid && !smtpResult.catchAll && !isCatchAllDomain) {
-                    foundValidNonCatchAll = true;
-                    break;
-                }
-            }
-            
-            // Show results
-            displayResults(isCatchAllDomain);
-            saveToHistory(firstName, lastName, domain, currentResults);
-            resetForm();
-        }
-
-        function displayResults(isCatchAllDomain) {
-            const resultsContent = document.getElementById('results-content');
-            const results = document.getElementById('results');
-            
-            resultsContent.innerHTML = '';
-            
-            if (isCatchAllDomain) {
-                // Show catch-all warning and top 6 patterns
-                const alert = document.createElement('div');
-                alert.className = 'alert alert-warning';
-                alert.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i>
-                    This domain accepts all emails (catch-all). Here are the most likely email addresses:
-                `;
-                resultsContent.appendChild(alert);
-                
-                const topResults = currentResults.slice(0, 6);
-                topResults.forEach(result => {
-                    addResultItem(resultsContent, result);
-                });
+            if (csvData.length > 0) {
+                // Process CSV data
+                await processBulkValidation(csvData, advancedVerification);
+            } else if (firstName && lastName && domain) {
+                // Process single entry
+                await processSingleValidation(firstName, lastName, domain, advancedVerification);
             } else {
-                // Show valid results or no results found
-                const validResults = currentResults.filter(r => r.valid);
-                
-                if (validResults.length > 0) {
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-success';
-                    alert.innerHTML = `
-                        <i class="fas fa-check-circle"></i>
-                        Found ${validResults.length} valid email address${validResults.length > 1 ? 'es' : ''}:
-                    `;
-                    resultsContent.appendChild(alert);
+                showNotification('Please fill in all fields or upload a CSV file', 'error');
+            }
+        }
+
+        async function processSingleValidation(firstName, lastName, domain, advanced) {
+            showProgressSection();
+            hideResultsSection();
+            
+            validationResults = [];
+            await validateEmailPatterns(firstName, lastName, domain, advanced);
+            
+            displayResults();
+            hideProgressSection();
+        }
+
+        async function processBulkValidation(data, advanced) {
+            showProgressSection();
+            hideResultsSection();
+            
+            validationResults = [];
+            
+            for (let i = 0; i < data.length; i++) {
+                const entry = data[i];
+                if (entry.firstName && entry.lastName && entry.domain) {
+                    updateProgress((i / data.length) * 100, `Processing ${i + 1} of ${data.length}...`);
                     
-                    validResults.forEach(result => {
-                        addResultItem(resultsContent, result);
-                    });
-                } else {
-                    const alert = document.createElement('div');
-                    alert.className = 'alert alert-warning';
-                    alert.innerHTML = `
-                        <i class="fas fa-exclamation-circle"></i>
-                        No valid email addresses found. The person might not have an email at this domain.
-                    `;
-                    resultsContent.appendChild(alert);
+                    const results = await validateEmailPatterns(
+                        entry.firstName.toLowerCase(),
+                        entry.lastName.toLowerCase(),
+                        entry.domain.toLowerCase(),
+                        advanced,
+                        false // Don't update UI for each entry
+                    );
+                    
+                    validationResults.push(...results);
                 }
             }
             
-            results.style.display = 'block';
-            results.classList.add('fade-in');
+            displayResults();
+            hideProgressSection();
         }
 
-        function addResultItem(container, result) {
-            const item = document.createElement('div');
-            item.className = 'result-item';
+        async function validateEmailPatterns(firstName, lastName, domain, advanced, updateUI = true) {
+            const results = [];
+            const totalPatterns = EMAIL_PATTERNS.length;
             
-            const email = document.createElement('div');
-            email.className = 'result-email';
-            email.textContent = result.email;
+            for (let i = 0; i < totalPatterns; i++) {
+                if (updateUI) {
+                    updateProgress((i / totalPatterns) * 100, `Testing pattern ${i + 1} of ${totalPatterns}...`);
+                }
+                
+                const email = EMAIL_PATTERNS[i](firstName, lastName, domain);
+                const validation = await validateEmail(email, advanced);
+                
+                results.push({
+                    email,
+                    pattern: i + 1,
+                    ...validation,
+                    firstName,
+                    lastName,
+                    domain
+                });
+                
+                // Small delay for better UX
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
             
-            const status = document.createElement('div');
-            status.className = 'result-status';
+            // Sort by confidence score
+            results.sort((a, b) => b.confidence - a.confidence);
             
-            const statusText = result.catchAll ? 'Catch-All' : (result.valid ? 'Valid' : 'Invalid');
-            const statusClass = result.catchAll ? 'status-catchall' : (result.valid ? 'status-valid' : 'status-invalid');
-            const statusIcon = result.catchAll ? 'fa-exclamation-triangle' : (result.valid ? 'fa-check-circle' : 'fa-times-circle');
+            if (updateUI) {
+                validationResults = results;
+            }
             
-            status.innerHTML = `
-                <i class="fas ${statusIcon} ${statusClass}"></i>
-                <span class="${statusClass}">${statusText}</span>
-                <span class="confidence-badge confidence-${result.confidence}">${result.confidence}</span>
-            `;
-            
-            item.appendChild(email);
-            item.appendChild(status);
-            container.appendChild(item);
+            return results;
         }
 
-        function showError(message) {
-            const resultsContent = document.getElementById('results-content');
-            const results = document.getElementById('results');
+        async function validateEmail(email, advanced) {
+            // Simulate comprehensive email validation
+            const validation = {
+                syntax: isValidEmailSyntax(email),
+                domain: await validateDomain(email.split('@')[1]),
+                smtp: await simulateSMTPValidation(email),
+                catchAll: false,
+                confidence: 0,
+                status: 'invalid',
+                responseTime: Math.random() * 500 + 100 // Simulate response time
+            };
+
+            // Calculate confidence based on validation results
+            let confidence = 0;
             
-            resultsContent.innerHTML = `
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-circle"></i>
-                    ${message}
-                </div>
-            `;
+            if (validation.syntax) confidence += 20;
+            if (validation.domain) confidence += 30;
+            if (validation.smtp) confidence += 40;
             
-            results.style.display = 'block';
+            // Pattern-based confidence boost
+            const patternBonus = getPatternConfidenceBonus(email);
+            confidence += patternBonus;
+            
+            // Advanced catch-all verification
+            if (advanced && validation.domain) {
+                const catchAllResult = await advancedCatchAllVerification(email);
+                validation.catchAll = catchAllResult.isCatchAll;
+                
+                if (catchAllResult.isCatchAll) {
+                    confidence = Math.min(confidence * 0.7, 70); // Reduce confidence for catch-all
+                    validation.status = 'possible';
+                } else if (validation.smtp) {
+                    validation.status = 'verified';
+                }
+            } else if (validation.smtp && validation.domain) {
+                validation.status = 'verified';
+            }
+            
+            validation.confidence = Math.round(Math.max(0, Math.min(100, confidence)));
+            
+            return validation;
         }
 
-        function resetForm() {
-            validationInProgress = false;
-            
-            const submitBtn = document.getElementById('submit-btn');
-            const progressContainer = document.getElementById('progress-container');
-            
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<i class="fas fa-search"></i> Find Email Address';
-            progressContainer.style.display = 'none';
+        function isValidEmailSyntax(email) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
         }
+
+        async function validateDomain(domain) {
+            // Simulate domain validation with common domains
+            const commonDomains = [
+                'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com',
+                'company.com', 'example.com', 'test.com', 'demo.com'
+            ];
+            
+            await new Promise(resolve => setTimeout(resolve, 200)); // Simulate API call
+            return commonDomains.includes(domain) || Math.random() > 0.3;
+        }
+
+        async function simulateSMTPValidation(email) {
+            await new Promise(resolve => setTimeout(resolve, 300)); // Simulate SMTP check
+            return Math.random() > 0.4; // 60% success rate for simulation
+        }
+
+        function getPatternConfidenceBonus(email) {
+            // Give bonus points based on common email patterns
+            if (email.includes('.')) return 10;
+            if (email.match(/^\w+@/)) return 8;
+            if (email.includes('_') || email.includes('-')) return 5;
+            return 0;
+        }
+
+        async function advancedCatchAllVerification(email) {
+            const domain = email.split('@')[1];
+            
+            // Simulate advanced catch-all detection
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            const catchAllDomains = ['example.com', 'test.com', 'demo.com'];
+            const isCatchAll = catchAllDomains.includes(domain) || Math.random() > 0.8;
+            
+            return {
+                isCatchAll,
+                confidence: isCatchAll ? Math.random() * 40 + 30 : Math.random() * 30 + 70
+            };
+        }
+
+        function showProgressSection() {
+            document.getElementById('progressSection').style.display = 'block';
+            updateProgress(0, 'Starting validation...');
+        }
+
+        function hideProgressSection() {
+            document.getElementById('progressSection').style.display = 'none';
+        }
+
+        function showResultsSection() {
+            document.getElementById('resultsSection').style.display = 'block';
+        }
+
+        function hideResultsSection() {
+            document.getElementById('resultsSection').style.display = 'none';
+        }
+
+        function updateProgress(percentage, text) {
+            document.getElementById('progressBar').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = text;
+        }
+
+        function displayResults() {
+            const container = document.getElementById('resultsContainer');
+            
+            if (validationResults.length === 0) {
+                container.innerHTML = '<p>No results found.</p>';
+                showResultsSection();
+                return;
+            }
+            
+            let html = '';
+            validationResults.forEach(result => {
+                const confidenceClass = getConfidenceClass(result.confidence);
+                const statusClass = `status-${result.status}`;
+                
+                html += `
+                    <div class="result-item">
+                        <div style="display: flex; align-items: center;">
+                            <div class="status-indicator ${statusClass}"></div>
+                            <div class="result-email">${result.email}</div>
+                        </div>
+                        <div class="result-confidence">
+                            <div class="confidence-badge ${confidenceClass}">
+                                ${result.confidence}%
+                            </div>
+                            <span style="font-size: 0.875rem; color: var(--text-secondary);">
+                                Pattern ${result.pattern}
+                            </span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+            showResultsSection();
+        }
+
+        function getConfidenceClass(confidence) {
+            if (confidence >= 70) return 'confidence-high';
+            if (confidence >= 40) return 'confidence-medium';
+            return 'confidence-low';
+        }
+
+        // Export functionality
+        document.getElementById('copyResults').addEventListener('click', copyResults);
+        document.getElementById('exportCSV').addEventListener('click', exportCSV);
 
         function copyResults() {
-            if (currentResults.length === 0) return;
-            
-            const text = currentResults
-                .filter(r => r.valid)
-                .map(r => `${r.email} (${r.confidence} confidence)`)
+            const text = validationResults
+                .map(r => `${r.email} - ${r.confidence}% (Pattern ${r.pattern})`)
                 .join('\n');
             
             navigator.clipboard.writeText(text).then(() => {
-                // Show feedback
-                const btn = event.target.closest('button');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                setTimeout(() => {
-                    btn.innerHTML = originalText;
-                }, 2000);
+                showNotification('Results copied to clipboard!', 'success');
             });
         }
 
-        // History management
-        function saveToHistory(firstName, lastName, domain, results) {
-            const history = getHistory();
-            const entry = {
-                timestamp: Date.now(),
-                firstName,
-                lastName,
-                domain,
-                results: results.filter(r => r.valid).slice(0, 3) // Save top 3 valid results
-            };
-            
-            history.unshift(entry);
-            history.splice(10); // Keep only last 10 searches
-            
-            localStorage.setItem('emailFinderHistory', JSON.stringify(history));
-            loadHistory();
-        }
-
-        function getHistory() {
-            try {
-                return JSON.parse(localStorage.getItem('emailFinderHistory')) || [];
-            } catch {
-                return [];
-            }
-        }
-
-        function loadHistory() {
-            const history = getHistory();
-            const historySection = document.getElementById('history-section');
-            const historyContent = document.getElementById('history-content');
-            
-            if (history.length === 0) {
-                historySection.style.display = 'none';
-                return;
-            }
-            
-            historySection.style.display = 'block';
-            historyContent.innerHTML = '';
-            
-            history.forEach(entry => {
-                const item = document.createElement('div');
-                item.className = 'history-item';
-                
-                const date = new Date(entry.timestamp).toLocaleDateString();
-                const validCount = entry.results.length;
-                
-                item.innerHTML = `
-                    <div>
-                        <strong>${entry.firstName} ${entry.lastName}</strong> @ ${entry.domain}
-                        <br>
-                        <small>${date} • ${validCount} valid email${validCount !== 1 ? 's' : ''} found</small>
-                    </div>
-                    <button class="copy-btn" onclick="copyHistoryItem(${entry.timestamp})">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                `;
-                
-                historyContent.appendChild(item);
-            });
-        }
-
-        function copyHistoryItem(timestamp) {
-            const history = getHistory();
-            const entry = history.find(e => e.timestamp === timestamp);
-            if (!entry) return;
-            
-            const text = entry.results.map(r => r.email).join('\n');
-            navigator.clipboard.writeText(text);
-        }
-
-        function clearHistory() {
-            localStorage.removeItem('emailFinderHistory');
-            loadHistory();
-        }
-    </script>
-</body>
-</html>
+        function exportCSV() {
+            const headers = ['Email', 'Confidence', 'Pattern', 'Status', 'First Name', 'Last Name', 'Domain'];
+            const rows = validationResults.map(r => [
+                r.email,
